@@ -100,6 +100,7 @@ def execute_trade(df, balance, symbol="BTCUSDT"):
 
     current_close = float(df.iloc[-1]["close"])
     old_balance = balance
+    trade_amount = old_balance * 0.5
 
     if predicted_close > current_close:
         action = "BUY"
@@ -111,7 +112,7 @@ def execute_trade(df, balance, symbol="BTCUSDT"):
         reason = "Predicted close lower than current → SELL"
 
     roi_percentage = round(float(roi_percentage), 2)
-    profit_realized = round(float(old_balance * (roi_percentage / 100)), 2)
+    profit_realized = round(float(trade_amount * (roi_percentage / 100)), 2)
     new_balance = round(old_balance + profit_realized, 2)
 
     return action, new_balance, roi_percentage, profit_realized, symbol, current_close, predicted_close, reason, old_balance
@@ -127,7 +128,7 @@ def log_trade(action, new_balance, roi_percentage, profit_realized, symbol, curr
     """, (
         datetime.now(),
         str(action),
-        float(old_balance),
+        float(old_balance * 0.5),
         float(roi_percentage),
         float(profit_realized),
         float(new_balance)
@@ -138,7 +139,7 @@ def log_trade(action, new_balance, roi_percentage, profit_realized, symbol, curr
 
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {action} {symbol} | "
           f"Old Balance: ${old_balance} | New Balance: ${new_balance} | "
-          f"Profit: ${profit_realized} ({roi_percentage}%) | "
+          f"Trade Amount: ${old_balance * 0.5} | Profit: ${profit_realized} ({roi_percentage}%) | "
           f"Current Close: {current_close} | Predicted Close: {predicted_close} | "
           f"Reason: {reason}")
 
@@ -150,7 +151,7 @@ def main():
         df = fetch_ohlc(limit=50)
         action, balance, roi_percentage, profit_realized, symbol, current_close, predicted_close, reason, old_balance = execute_trade(df, balance)
         log_trade(action, balance, roi_percentage, profit_realized, symbol, current_close, predicted_close, reason, old_balance)
-        print("Running Linear Regression Prediction Backtest")
+        print("Running Linear Regression Prediction Backtest with 50% Risk Management")
         time.sleep(interval)
 
 if __name__ == "__main__":
